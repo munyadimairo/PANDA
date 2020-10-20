@@ -2,36 +2,36 @@
 cap prog drop stopohss
 cap prog define stopohss
 	********************************************************************************
-	* Project 			:		PANDA - Example for the design of the STOP-OHSS trial 
-	* Date 				:		28 November 2018
+	* Project 		:		PANDA - Example for the design of the STOP-OHSS trial 
+	* Date 			:		28 November 2018
 	* Program Author	:		Munya Dimairo (Sheffield CTRU)
 	********************************************************************************
 	* Trial design		:		Multi-arm multi-stage (MAMS) adaptive design
 	* Adaptive features	:		Dropping of futile arms or stopping the trial early for futility if all new interventions are not promising		
 	* Adaptive Methods	: 		Bratton et al (2013). A multi-arm multi-stage clinical trial design for binary outcomes with application to tuberculosis. BMC Med Res Methodol . 2013 (doi: 10.1186/1471-2288-13-139)
-								// Bratton (2015). Design issues and extensions of multi-arm multi-stage clinical trials. University College London. PhD Thesis (http://discovery.ucl.ac.uk/1459437/)
+	*			:		// Bratton (2015). Design issues and extensions of multi-arm multi-stage clinical trials. University College London. PhD Thesis (http://discovery.ucl.ac.uk/1459437/)
 	* Primary endpoint	:		Hospital admission within 28 days (~30% control event rate based on preliminary audit data 
 	* Population		:		Women with moderate or severe early OHSS (before embryo transfer)
-	* Adaptation outcome: 		Treatment selection is based on the primary outcome (i.e intermediate outcome is the same as the final outcome)
+	* Adaptation outcome	: 		Treatment selection is based on the primary outcome (i.e intermediate outcome is the same as the final outcome)
 	********************************************************************************
 	// nstagebinopt		: 		search for a set of feasible and admisable designs (type "chelp nstagebinopt" for more details)
 	********************************************************************************
 	* nstage(#) 		:		number of stages including the final analysis (e.g. 2 or 3)
-	* arms (#)			:		number of treatment arms including the control (e.g. 3)
-	* alpha()			:		stagewise one-sided nominal level for pairwise comparison to the control (e.g. 2.5%)
-	* power()			:		stagewise power for each pairwise comparison (e.g 80%, 85% or 90%)
-	* theta0()			:		treatment difference under H0 (ie, 0)
-	* theta1()			:		targeted difference in proportions under H1; parameterisation is crucial (e.g -20% and 20% mean decrease and increase is a good outcome for the new treatment, respectively)
-	* ctrlp()			:		assumed control event rate (ie assumed 30%)
-	* ltfu()			:		lost to follow-up rate (i.e assumed 0%)
+	* arms (#)		:		number of treatment arms including the control (e.g. 3)
+	* alpha()		:		stagewise one-sided nominal level for pairwise comparison to the control (e.g. 2.5%)
+	* power()		:		stagewise power for each pairwise comparison (e.g 80%, 85% or 90%)
+	* theta0()		:		treatment difference under H0 (ie, 0)
+	* theta1()		:		targeted difference in proportions under H1; parameterisation is crucial (e.g -20% and 20% mean decrease and increase is a good outcome for the new treatment, respectively)
+	* ctrlp()		:		assumed control event rate (ie assumed 30%)
+	* ltfu()		:		lost to follow-up rate (i.e assumed 0%)
 	* accrate(#)		:		patient accrual rate at each stage per unit time (tunit); tunit(4) to represent per month is used ; ~100/year (~5 per month) for early OHSS and 50/year (4 per month) for late OHSS; 
-	* fu(#)				:		length of follow-up for the primary outome relative to the unit of time (i.e 28 days relative to 1 month unit time ~0.92
-	* aratio()			:		ratio of patients allocated to new treatment to control (e.g 1= equal randomisation; 0.5 = 2:1:1 control to new treatment) 
+	* fu(#)			:		length of follow-up for the primary outome relative to the unit of time (i.e 28 days relative to 1 month unit time ~0.92
+	* aratio()		:		ratio of patients allocated to new treatment to control (e.g 1= equal randomisation; 0.5 = 2:1:1 control to new treatment) 
 	*******************************************************************************
 	// nstagebin		:		details the operating characteristics of the specified MAMS design (e,g stagewise sample sizes, pairwise statistical properties, familywise error rate, and trial duration)
-								// nstagebinopt arguments described above should be included in addition to the options below  
-								// ppvc() and ppve() are irrelevant when (immediate = final outcome) so are excluded
-								// (type "chelp nstagebin" for more details)
+						// nstagebinopt arguments described above should be included in addition to the options below  
+						// ppvc() and ppve() are irrelevant when (immediate = final outcome) so are excluded
+						// (type "chelp nstagebin" for more details)
 	********************************************************************************
 	* extrat()			:		delay in observing the the final outcome for analyis and start of the next stage relative to the unit time in unit(4) 
 								// e.g. to accommodate interim analysis, quality control, DMEC decisions (assumed 0 as the study won't be stopped during interim decisions /  recruitment expected to be very slow)
@@ -57,10 +57,10 @@ cap prog define stopohss
 
 	// explore 2 and 3 stage designs (interim and final analyses): equal randomisation and overall pairwise power of 80%, 85%, and 90%
 
-	forvalues p = 80(5)90 { 													// overall pairwise power
+	forvalues p = 80(5)90 { 											// overall pairwise power
 		local i : di %3.2f `p'/100			
 		// two stage design (1 interim analysis and final analysis) with equal randomisation (1:1:1)
-		nstagebinopt, nstage(2) arms(3) alpha(0.025) power(`i')					 ///
+		nstagebinopt, nstage(2) arms(3) alpha(0.025) power(`i')					 		///
 					theta0(0) theta1(-0.20) ctrlp(0.3) ltfu(0) 					///
 					fu(0.92) accrate(8 8) aratio(1) fwer 						///
 					save("$S_path\2s_`p'p_equalrand_fs")
@@ -69,7 +69,7 @@ cap prog define stopohss
 		qui save  "$S_path\2s_`p'p_equalrand_fs.dta", replace
 			
 		// two stage design (1 interim analysis and final analysis) with 2:1:1 randomisation
-		nstagebinopt, nstage(2) arms(3) alpha(0.025) power(`i') 				///
+		nstagebinopt, nstage(2) arms(3) alpha(0.025) power(`i') 						///
 					theta0(0) theta1(-0.20) ctrlp(0.3) ltfu(0) 					///
 					fu(0.92) accrate(8 8) aratio(0.5) fwer 						///
 					save("$S_path\2s_`p'p_0.5rand_fs")
@@ -78,7 +78,7 @@ cap prog define stopohss
 		qui save  "$S_path\2s_`p'p_0.5rand_fs.dta", replace	
 					
 		// three stage design (2 interim analyses and final analysis) with equal randomisation (1:1:1)
-		nstagebinopt, nstage(3) arms(3) alpha(0.025) power(`i') 				///
+		nstagebinopt, nstage(3) arms(3) alpha(0.025) power(`i') 						///
 					theta0(0) theta1(-0.20) ctrlp(0.3) ltfu(0) 					///
 					fu(0.92) accrate(8 8 8) aratio(1) fwer 						///
 					save("$S_path\3s_`p'p_equalrand_fs")
@@ -87,7 +87,7 @@ cap prog define stopohss
 		qui save  "$S_path\3s_`p'p_equalrand_fs.dta", replace
 		
 		// three stage design (2 interim analyses and final analysis) with 2:1:1 randomisation
-		nstagebinopt, nstage(3) arms(3) alpha(0.025) power(`i') 				///
+		nstagebinopt, nstage(3) arms(3) alpha(0.025) power(`i') 						///
 					theta0(0) theta1(-0.20) ctrlp(0.3) ltfu(0) 					///
 					fu(0.92) accrate(8 8 8) aratio(0.5) fwer 					///
 					save("$S_path\3s_`p'p_0.5rand_fs")
@@ -158,14 +158,14 @@ cap prog define stopohss
 	destring fwer, replace
 
 	// plot decision-making rules for each MAMS design
-	twoway scatter sw_power1 sw_alpha1, by(labid, note("")) mlab(q_range) mlabsize(tiny) yline(0.9) xline(0.25 0.40) legend(off) 		///
-				ytitle("Stage 1 power") xtitle("Stage 1 futility boundary (p-value scale)") subtitle(, size(small)) 					///
+	twoway scatter sw_power1 sw_alpha1, by(labid, note("")) mlab(q_range) mlabsize(tiny) yline(0.9) xline(0.25 0.40) legend(off) 				///
+				ytitle("Stage 1 power") xtitle("Stage 1 futility boundary (p-value scale)") subtitle(, size(small)) 				///
 				graphregion(margin(none)) saving("$S_path\design set_siglevel.gph", replace)
 	graph export "$S_path/design set_siglevel.tif", as(tif) replace
 				
 	// plot stage 1 sample sizes vs significance level for each MAMS design
 	twoway scatter sw_N1 sw_alpha1, by(labid, note("")) mlab(q_range) mlabsize(tiny) xline(0.25 0.40) legend(off) 						///
-				ytitle("Stage 1 sample size") xtitle("Stage 1 futility boundary (p-value scale)", size(small)) subtitle(, size(small)) 	///
+				ytitle("Stage 1 sample size") xtitle("Stage 1 futility boundary (p-value scale)", size(small)) subtitle(, size(small)) 		///
 				ylabel(50(10)200, labsize(vsmall)) yline(100 160) graphregion(margin(none)) 											///
 				saving("$S_path\design set_siglevel_samplesize.gph", replace)
 	graph export "$S_path\design set_siglevel_samplesize.tif", as(tif) replace
@@ -176,7 +176,7 @@ cap prog define stopohss
 	qui replace Ntot = sw_N3 if sw_N3 != .
 
 	twoway scatter Ntot sw_alpha1, by(labid, note("")) mlab(q_range) mlabsize(tiny) xline(0.25 0.40) legend(off) 						///
-				ytitle("Total sample size") xtitle("Stage 1 futility boundary (p-value scale)", size(small)) subtitle(, size(small)) 	///
+				ytitle("Total sample size") xtitle("Stage 1 futility boundary (p-value scale)", size(small)) subtitle(, size(small)) 		///
 				ylabel(180(10)330, labsize(vsmall)) yline(240 300) graphregion(margin(none)) 											///
 				saving("$S_path\design set_siglevel_totalss.gph", replace)
 	graph export "$S_path\design set_siglevel_totalss.tif", as(tif) replace
@@ -184,7 +184,7 @@ cap prog define stopohss
 				
 	// plot familywise error rate vs stage 1 significance level (futility threshold)
 	twoway scatter fwer sw_alpha1, by(labid, note("")) mlab(q_range) mlabsize(tiny) xline(0.25 0.40) legend(off) 						///
-				ytitle("Familywise error rate") xtitle("Stage 1 futility boundary (p-value scale)", size(small)) subtitle(, size(small)) ///
+				ytitle("Familywise error rate") xtitle("Stage 1 futility boundary (p-value scale)", size(small)) subtitle(, size(small)) 	///
 				ylabel(, labsize(vsmall)) yline(0.025) graphregion(margin(none)) 														///
 				saving("$S_path\design set_siglevel_fwer.gph", replace)
 	graph export "$S_path\design set_siglevel_fwer.tif", as(tif) replace
@@ -214,13 +214,13 @@ cap prog define stopohss
 
 		// design 1 (2 stage; 90%; 2:1:1; q_range [0.51,0.70])
 		* in the first interim anaysis, a new treatment is dropped if the absolute reduction is <=6.258% (~6%): 
-		nstagebin, nstage(2) accrate(8 8) alpha(0.27 0.014) 						///
+		nstagebin, nstage(2) accrate(8 8) alpha(0.27 0.014) 								///
 					 power(0.96 0.92) arms(3 3) theta0(0) 							///
-					 theta1(-0.20) ctrlp(0.3) fu(0.92) ltfu(0) tunit(4) 			///
+					 theta1(-0.20) ctrlp(0.3) fu(0.92) ltfu(0) tunit(4) 					///
 					 aratio(0.5) probs ess extrat(0) seed(25)
 
 		forvalues i = 1(1)2 { 
-			local power`i': di %3.1f (`r(WS`i')')*100
+			local power`i'	: di %3.1f (`r(WS`i')')*100
 			local pv`i'	: di %4.3f (`r(AS`i')')
 		}
 		
@@ -243,10 +243,10 @@ cap prog define stopohss
 		 
 		forvalues i=1(1)2{ 
 			local power`i'	: 	di %3.1f (`r(WS`i')')*100
-			local pv`i'		: 	di %4.3f (`r(AS`i')')
+			local pv`i'	: 	di %4.3f (`r(AS`i')')
 		}
 		local fwer		: 	di %5.4f (`r(fwer)')
-		local sefwer	: 	di %5.4f r(se_fwer)
+		local sefwer		: 	di %5.4f r(se_fwer)
 
 		di _skip(20)
 		post `myout' ("90%; 2:1:1; q_range[0.51,0.70]") ("") ("") ("") ("") ("") ("") ("") 
@@ -272,7 +272,7 @@ cap prog define stopohss
 		post `myout' ("") (" (per month)") ("Stage1 (months)") ("Stage 2 (months)")
 	forvalues r = 5(1)8 {
 		nstagebin, nstage(2) accrate(`r' `r') alpha(0.27 0.014) 				///
-				 power(0.96 0.92) arms(3 3) theta0(0) 							///
+				 power(0.96 0.92) arms(3 3) theta0(0) 					///
 				 theta1(-0.20) ctrlp(0.3) fu(0.92) ltfu(0) tunit(4) 			///
 				 aratio(0.5) probs ess extrat(0) seed(25)
 
@@ -298,17 +298,17 @@ cap prog define stopohss
 		post `myout' ("q_range[0.51,0.70]") ("") ("") ("") ("") ("") ("") ("") ("") 
 	forvalues p = 0.25(0.05)0.40 {
 		nstagebin, nstage(2) accrate(8 8) alpha(0.27 0.014) 					///
-				 power(0.96 0.92) arms(3 3) theta0(0) 							///
+				 power(0.96 0.92) arms(3 3) theta0(0) 					///
 				 theta1(-0.20) ctrlp(`p') fu(0.92) ltfu(0) tunit(4) 			///
 				 aratio(0.5) probs ess extrat(0) seed(25)
 
 		forvalues i = 1(1)2 { 
 			local power`i'	: 	di %3.1f (`r(WS`i')')*100
-			local pv`i'		: 	di %4.3f (`r(AS`i')')
+			local pv`i'	: 	di %4.3f (`r(AS`i')')
 		}
 		
 		local fwer		: 	di %5.4f (`r(fwer)')
-		local sefwer	: 	di %5.4f `r(se_fwer)'
+		local sefwer		: 	di %5.4f `r(se_fwer)'
 
 		di _skip(20)
 		post `myout' ("") ("`p'") ("") ("") ("") ("") ("") ("") ("") 
