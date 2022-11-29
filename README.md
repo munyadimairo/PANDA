@@ -11,9 +11,9 @@ This repository contains **Stata**, **SAS**, and **R** code and related material
 
 ## Illustration of the analysis of the MAMS [STOP OHSS](https://panda.shef.ac.uk/techniques/multi-arm-multi-stage-mams/categories/30#search_subheading_reference_42) trial with a binary outcome
 
-Simulation based approach using **SAS** code to explore the:
+Simulation based approach using [**SAS** code](https://github.com/munyadimairo/PANDA/tree/master/SAS_MAMS/Code) to explore the:
 
 - operating characteristics of the design (similar to above),
 - properties of naive and bias-adjusted estimators (bias and confidence interval coverage).
 
-A detailed sumamry report is provided. We are extremely grateful to **John Whitehead** for his generous contribution to the SAS code and related report. 
+A detailed simulation summary report is provided. We are extremely grateful to **John Whitehead** for his generous contribution to the SAS code and related report. 
