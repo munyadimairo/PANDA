@@ -4,7 +4,7 @@ This repository contains **Stata**, **SAS**, and **R** code and related material
 
 ## Illustration of the design of a multi-arm multi-stage (MAMS) ([STOP OHSS](https://panda.shef.ac.uk/techniques/multi-arm-multi-stage-mams/categories/30#search_subheading_reference_42)) trial
 
-**Stata** code (_stopohss_mams_code.do_) was used for the design of [STOP OHSS](https://panda.shef.ac.uk/techniques/multi-arm-multi-stage-mams/categories/30#search_subheading_reference_42) trial to illustrate:
+[**Stata** code](https://github.com/munyadimairo/PANDA/blob/master/Stata%20code/stopohss_mams_code) was used for the design of [STOP OHSS](https://panda.shef.ac.uk/techniques/multi-arm-multi-stage-mams/categories/30#search_subheading_reference_42) trial to illustrate:
 
 - design specification,
 - sample size calculation and operating characteristics.
