@@ -112,9 +112,9 @@ cap prog define stopohss
 	qui encode id, gen(labid) lab(id)
 
 	// split stage characteristics 
-	qui split sw_power, p("") 														/* power at each stage */
-	qui split sw_alpha, p("") 														/* significance level at each stage */
-	qui split sw_N, p("")															/* sample sizes at each stage (cumulative) */
+	qui split sw_power, p("") 									/* power at each stage */
+	qui split sw_alpha, p("") 									/* significance level at each stage */
+	qui split sw_N, p("")										/* sample sizes at each stage (cumulative) */
 	qui gen ess = string(ess0) + "," + string(ess2)
 
 	preserve
