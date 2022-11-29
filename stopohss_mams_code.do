@@ -1,4 +1,3 @@
-
 cap prog drop stopohss
 cap prog define stopohss
 	********************************************************************************
@@ -322,8 +321,6 @@ cap prog define stopohss
 	qui save "$S_path\3-arm 2-stage (mams) design - control uncertainty", replace
 	l
 
-
 end 
 stopohss
 ex	
-
