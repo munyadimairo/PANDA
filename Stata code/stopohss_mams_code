@@ -1,0 +1,326 @@
+cap prog drop stopohss
+cap prog define stopohss
+	********************************************************************************
+	* Project 		:		PANDA - Example for the design of the STOP-OHSS trial 
+	* Date 			:		28 November 2018
+	* Program Author	:		Munya Dimairo (Sheffield CTRU)
+	********************************************************************************
+	* Trial design		:		Multi-arm multi-stage (MAMS) adaptive design
+	* Adaptive features	:		Dropping of futile arms or stopping the trial early for futility if all new interventions are not promising		
+	* Adaptive Methods	: 		Bratton et al (2013). A multi-arm multi-stage clinical trial design for binary outcomes with application to tuberculosis. BMC Med Res Methodol . 2013 (doi: 10.1186/1471-2288-13-139)
+	*			:		// Bratton (2015). Design issues and extensions of multi-arm multi-stage clinical trials. University College London. PhD Thesis (http://discovery.ucl.ac.uk/1459437/)
+	* Primary endpoint	:		Hospital admission within 28 days (~30% control event rate based on preliminary audit data 
+	* Population		:		Women with moderate or severe early OHSS (before embryo transfer)
+	* Adaptation outcome	: 		Treatment selection is based on the primary outcome (i.e intermediate outcome is the same as the final outcome)
+	********************************************************************************
+	// nstagebinopt		: 		search for a set of feasible and admisable designs (type "chelp nstagebinopt" for more details)
+	********************************************************************************
+	* nstage(#) 		:		number of stages including the final analysis (e.g. 2 or 3)
+	* arms (#)		:		number of treatment arms including the control (e.g. 3)
+	* alpha()		:		stagewise one-sided nominal level for pairwise comparison to the control (e.g. 2.5%)
+	* power()		:		stagewise power for each pairwise comparison (e.g 80%, 85% or 90%)
+	* theta0()		:		treatment difference under H0 (ie, 0)
+	* theta1()		:		targeted difference in proportions under H1; parameterisation is crucial (e.g -20% and 20% mean decrease and increase is a good outcome for the new treatment, respectively)
+	* ctrlp()		:		assumed control event rate (ie assumed 30%)
+	* ltfu()		:		lost to follow-up rate (i.e assumed 0%)
+	* accrate(#)		:		patient accrual rate at each stage per unit time (tunit); tunit(4) to represent per month is used ; ~100/year (~5 per month) for early OHSS and 50/year (4 per month) for late OHSS; 
+	* fu(#)			:		length of follow-up for the primary outome relative to the unit of time (i.e 28 days relative to 1 month unit time ~0.92
+	* aratio()		:		ratio of patients allocated to new treatment to control (e.g 1= equal randomisation; 0.5 = 2:1:1 control to new treatment) 
+	*******************************************************************************
+	// nstagebin		:		details the operating characteristics of the specified MAMS design (e,g stagewise sample sizes, pairwise statistical properties, familywise error rate, and trial duration)
+						// nstagebinopt arguments described above should be included in addition to the options below  
+						// ppvc() and ppve() are irrelevant when (immediate = final outcome) so are excluded
+						// (type "chelp nstagebin" for more details)
+	********************************************************************************
+	* extrat()			:		delay in observing the the final outcome for analyis and start of the next stage relative to the unit time in unit(4) 
+								// e.g. to accommodate interim analysis, quality control, DMEC decisions (assumed 0 as the study won't be stopped during interim decisions /  recruitment expected to be very slow)
+	* probs				: 		reports the probabilities of treatment arms reaching stages assuming none are effective (global null) and all are effective (global alternative - H1)
+	* ess				:		reports expected sample sizes under the global H0 and H1
+	********************************************************************************
+				 
+	// searching for a set of admissible and feasible designs
+	// Note optimisation may take a few minutes for a 3-stage design ( even longer for >= 4-stage
+	* search for design that minimises the expected loss function of the sample size under H0 (if 0 effective treatments) and H2 (if k effective treatments )
+	* computes the statistical power for each stage that will result in the desired overall power stated
+	* computes the stopping boundaries for each stage: p-value scale below which the treatment is selected
+	* computes the familywise error rate
+	* set of  of q-values determines the timing of interim analyses  
+	********************************************************************************
+
+	* set directory path to be specified by the user
+	window stopbox stop "For the code to run, the user must specify their working directory path to replace (X:\ScHARR\PR_PANDA\General\Study documents\Content material\MAMS\Sample size) below. When done please delete this 'window stopbox' command line' in the do file (line 52) and execute file as normal"
+	global S_path "X:\ScHARR\PR_PANDA\General\Study documents\Content material\MAMS\Sample size" 
+
+	* set seed for reproducibility (some operating characteristics such as familywise error rate are estimated via simulation)
+	set seed 25
+
+	// explore 2 and 3 stage designs (interim and final analyses): equal randomisation and overall pairwise power of 80%, 85%, and 90%
+
+	forvalues p = 80(5)90 { 											// overall pairwise power
+		local i : di %3.2f `p'/100			
+		// two stage design (1 interim analysis and final analysis) with equal randomisation (1:1:1)
+		nstagebinopt, nstage(2) arms(3) alpha(0.025) power(`i')					 		///
+					theta0(0) theta1(-0.20) ctrlp(0.3) ltfu(0) 					///
+					fu(0.92) accrate(8 8) aratio(1) fwer 						///
+					save("$S_path\2s_`p'p_equalrand_fs")
+		qui use "$S_path\2s_`p'p_equalrand_fs.dta", clear
+		qui gen str id = "2S; `p'%; 1:1:1"
+		qui save  "$S_path\2s_`p'p_equalrand_fs.dta", replace
+			
+		// two stage design (1 interim analysis and final analysis) with 2:1:1 randomisation
+		nstagebinopt, nstage(2) arms(3) alpha(0.025) power(`i') 						///
+					theta0(0) theta1(-0.20) ctrlp(0.3) ltfu(0) 					///
+					fu(0.92) accrate(8 8) aratio(0.5) fwer 						///
+					save("$S_path\2s_`p'p_0.5rand_fs")
+		qui use "$S_path\2s_`p'p_0.5rand_fs.dta", clear
+		qui gen str id = "2S; `p'%; 2:1:1"
+		qui save  "$S_path\2s_`p'p_0.5rand_fs.dta", replace	
+					
+		// three stage design (2 interim analyses and final analysis) with equal randomisation (1:1:1)
+		nstagebinopt, nstage(3) arms(3) alpha(0.025) power(`i') 						///
+					theta0(0) theta1(-0.20) ctrlp(0.3) ltfu(0) 					///
+					fu(0.92) accrate(8 8 8) aratio(1) fwer 						///
+					save("$S_path\3s_`p'p_equalrand_fs")
+		qui use "$S_path\3s_`p'p_equalrand_fs.dta", clear
+		qui gen str id = "3S; `p'%; 1:1:1"
+		qui save  "$S_path\3s_`p'p_equalrand_fs.dta", replace
+		
+		// three stage design (2 interim analyses and final analysis) with 2:1:1 randomisation
+		nstagebinopt, nstage(3) arms(3) alpha(0.025) power(`i') 						///
+					theta0(0) theta1(-0.20) ctrlp(0.3) ltfu(0) 					///
+					fu(0.92) accrate(8 8 8) aratio(0.5) fwer 					///
+					save("$S_path\3s_`p'p_0.5rand_fs")
+		qui use "$S_path\3s_`p'p_0.5rand_fs.dta", clear
+		qui gen str id = "3S; `p'%; 2:1:1"
+		qui save  "$S_path\3s_`p'p_0.5rand_fs.dta", replace
+	}
+
+	// prepare data by appending the set of all admissible & feasible designs (for plotting expected sample sizes under GH0 and GH2 later) 
+	qui use "$S_path\2s_80p_equalrand_fs.dta", clear
+	qui append using "$S_path\2s_85p_equalrand_fs.dta"
+	qui append using "$S_path\2s_90p_equalrand_fs.dta"
+	qui append using "$S_path\3s_80p_equalrand_fs.dta"
+	qui append using "$S_path\3s_85p_equalrand_fs.dta"
+	qui append using "$S_path\3s_90p_equalrand_fs.dta"
+	qui append using "$S_path\2s_80p_0.5rand_fs.dta"
+	qui append using "$S_path\2s_85p_0.5rand_fs.dta"
+	qui append using "$S_path\2s_90p_0.5rand_fs.dta"
+	qui append using "$S_path\3s_80p_0.5rand_fs.dta"
+	qui append using "$S_path\3s_85p_0.5rand_fs.dta"
+	qui append using "$S_path\3s_90p_0.5rand_fs.dta"
+
+	qui encode id, gen(labid) lab(id)
+
+	// split stage characteristics 
+	qui split sw_power, p("") 														/* power at each stage */
+	qui split sw_alpha, p("") 														/* significance level at each stage */
+	qui split sw_N, p("")															/* sample sizes at each stage (cumulative) */
+	qui gen ess = string(ess0) + "," + string(ess2)
+
+	preserve
+		qui bysort labid : gen n = _n
+		qui keep if (n == 1)
+		qui sort labid
+		forvalues i = 1(1)12 {
+			if (`i' == labid[`i']) {
+				local labid`i' = id[`i']
+			}
+		}
+	restore
+
+	// plot the expected sample sizes under GH0 (global null) and GH2 (global alternative) hypotheses
+	set scheme plottig 
+	twoway  (connected ess0 ess2 if labid==1, mlabel(ess) msymbol(Oh) mlabsize(tiny) lpattern(- -) lwidth(medthin) legend(label(1 "`labid1'") size(tiny) pos(2) col(1) region(color(none)))) 	///
+			(connected ess0 ess2 if labid==2, mlabel(ess) msymbol(Sh) mlabsize(tiny) lpattern(..-..) lwidth(medthin) legend(label(2 "`labid2'") size(tiny))) 									///
+			(connected ess0 ess2 if labid==3, mlabel(ess) msymbol(Th) mlabsize(tiny) lpattern(...---...) lwidth(medthin) legend(label(3 "`labid3'") size(tiny))) 								///
+			(connected ess0 ess2 if labid==4, mlabel(ess) msymbol(Dh) mlabsize(tiny) lwidth(medthin) legend(label(4 "`labid4'") size(tiny))) 													///
+			(connected ess0 ess2 if labid==5, mlabel(ess) mlabsize(tiny) lwidth(medthin) legend(label(5 "`labid5'") size(tiny))) 																///
+			(connected ess0 ess2 if labid==6, mlabel(ess) msymbol(x) mlabsize(tiny) lwidth(medthin) mlabpos(7) legend(label(6 "`labid6'") size(tiny))) 											///
+			(connected ess0 ess2 if labid==7, mlabel(ess) msymbol(Sh) mlabsize(tiny) lpattern(..-..) lwidth(medthin) legend(label(7 "`labid7'") size(tiny))) 									///
+			(connected ess0 ess2 if labid==8, mlabel(ess) msymbol(Th) mlabsize(tiny) lpattern(...---...) lwidth(medthin) legend(label(8 "`labid8'") size(tiny))) 								///
+			(connected ess0 ess2 if labid==9, mlabel(ess) msymbol(Dh) mlabsize(tiny) lwidth(medthin) legend(label(9 "`labid9'") size(tiny))) 													///
+			(connected ess0 ess2 if labid==10, mlabel(ess) mlabsize(tiny) lwidth(medthin) legend(label(10 "`labid10'") size(tiny))) 															///
+			(connected ess0 ess2 if labid==11, mlabel(ess) msymbol(x) mlabsize(tiny) lwidth(medthin) mlabpos(7) legend(label(11 "`labid11'") size(tiny))) 										///
+			(connected ess0 ess2 if labid==12, mlabel(ess) msymbol(X) mlabsize(tiny) lwidth(medthin) mlabpos(7) legend(label(12 "`labid12'") size(tiny))) 										///
+			, graphregion(color(white) margin(tiny)) ylabel(80(10)210, labsize(vsmall) angle(0) gmin gmax) 																						///
+			xlabel(170(10)320, angle(0) labsize(vsmall)) ytitle(Expected sample size under H0 (0 effective arms), size(vsmall)) 																///
+			xtitle(Expected sample size under H2 (all 2 effective arms), size(vsmall)) 																											///
+			saving("$S_path\design set_fs.gph", replace)
+	graph export "$S_path\design set_fs.tif", as(tif) replace
+
+	* destring variables to numeric for later use
+	destring sw_power1, replace
+	destring sw_alpha1, replace
+	destring sw_N1, replace
+	destring sw_N2, replace
+	destring sw_N3, replace
+	destring fwer, replace
+
+	// plot decision-making rules for each MAMS design
+	twoway scatter sw_power1 sw_alpha1, by(labid, note("")) mlab(q_range) mlabsize(tiny) yline(0.9) xline(0.25 0.40) legend(off) 				///
+				ytitle("Stage 1 power") xtitle("Stage 1 futility boundary (p-value scale)") subtitle(, size(small)) 				///
+				graphregion(margin(none)) saving("$S_path\design set_siglevel.gph", replace)
+	graph export "$S_path/design set_siglevel.tif", as(tif) replace
+				
+	// plot stage 1 sample sizes vs significance level for each MAMS design
+	twoway scatter sw_N1 sw_alpha1, by(labid, note("")) mlab(q_range) mlabsize(tiny) xline(0.25 0.40) legend(off) 						///
+				ytitle("Stage 1 sample size") xtitle("Stage 1 futility boundary (p-value scale)", size(small)) subtitle(, size(small)) 		///
+				ylabel(50(10)200, labsize(vsmall)) yline(100 160) graphregion(margin(none)) 											///
+				saving("$S_path\design set_siglevel_samplesize.gph", replace)
+	graph export "$S_path\design set_siglevel_samplesize.tif", as(tif) replace
+				
+	// plot total sample sizes vs stage 1 significance level (futility threshold) 
+	qui gen Ntot = .
+	qui replace Ntot = sw_N2 if sw_N3 == .
+	qui replace Ntot = sw_N3 if sw_N3 != .
+
+	twoway scatter Ntot sw_alpha1, by(labid, note("")) mlab(q_range) mlabsize(tiny) xline(0.25 0.40) legend(off) 						///
+				ytitle("Total sample size") xtitle("Stage 1 futility boundary (p-value scale)", size(small)) subtitle(, size(small)) 		///
+				ylabel(180(10)330, labsize(vsmall)) yline(240 300) graphregion(margin(none)) 											///
+				saving("$S_path\design set_siglevel_totalss.gph", replace)
+	graph export "$S_path\design set_siglevel_totalss.tif", as(tif) replace
+
+				
+	// plot familywise error rate vs stage 1 significance level (futility threshold)
+	twoway scatter fwer sw_alpha1, by(labid, note("")) mlab(q_range) mlabsize(tiny) xline(0.25 0.40) legend(off) 						///
+				ytitle("Familywise error rate") xtitle("Stage 1 futility boundary (p-value scale)", size(small)) subtitle(, size(small)) 	///
+				ylabel(, labsize(vsmall)) yline(0.025) graphregion(margin(none)) 														///
+				saving("$S_path\design set_siglevel_fwer.gph", replace)
+	graph export "$S_path\design set_siglevel_fwer.tif", as(tif) replace
+
+	// selected design that gives desired operating characteristics	(after inspection of the above graphs and characteristics)	
+	l q_range sw_alpha fwer sw_power sw_N1 Ntot labid if (q_range == "[0.51,0.70]" | q_range == "[0.00,0.50]")
+
+
+	// save design parameters of searched designs for use later
+	qui save "$S_path\design set_fs", replace
+
+			
+	********************************************************************************
+	// inspect a set of designs searched using the graphs above and select a design of interest
+	// select the parameters of the chosen design of interest from the "design set" for use in nstagebin (next)
+	********************************************************************************
+	qui tempname myout 
+	qui tempfile mamsdesign 
+
+	qui postfile `myout' str20 (col1 col2 col3 col4 col5 col6 col7 col8) using `mamsdesign', replace
+		post `myout' ("Design") ("n0") ("n1") ("n2") ("N") ("sig. level") ("power") ("familywise err (se)") 
+
+		// designs of interest: 2 stage mams designs (90% power, 2:1:1 randomisation)
+		// extract the important study design parameters for reporting	
+		l q_range sw_alpha fwer sw_power sw_N1 Ntot labid if (q_range == "[0.51,0.70]" | q_range == "[0.00,0.50]")
+		post `myout' ("90%; 2:1:1; q_range[0.51,0.70]") ("") ("") ("") ("") ("") ("") ("") 
+
+		// design 1 (2 stage; 90%; 2:1:1; q_range [0.51,0.70])
+		* in the first interim anaysis, a new treatment is dropped if the absolute reduction is <=6.258% (~6%): 
+		nstagebin, nstage(2) accrate(8 8) alpha(0.27 0.014) 								///
+					 power(0.96 0.92) arms(3 3) theta0(0) 							///
+					 theta1(-0.20) ctrlp(0.3) fu(0.92) ltfu(0) tunit(4) 					///
+					 aratio(0.5) probs ess extrat(0) seed(25)
+
+		forvalues i = 1(1)2 { 
+			local power`i'	: di %3.1f (`r(WS`i')')*100
+			local pv`i'	: di %4.3f (`r(AS`i')')
+		}
+		
+		local fwer: di %5.4f (`r(fwer)')
+		local sefwer: di %5.4f r(se_fwer)
+		di _skip(20)
+
+		post `myout' ("stage 1")  ("`r(nCS1)'/`r(totCS1)'") 		("`r(nXS1)'/`r(totXS1)'") 	("`r(nXS1)'/`r(totXS1)'") 	("`r(nS1)'/`r(totS1)'") 	("`pv1'") 	("`power1'") 	("`fwer' (`sefwer')")
+		post `myout' ("stage 2")  ("`r(nCS2)'/`r(totCS2)'")  		("`r(nXS2)'/`r(totXS2)'") 	("`r(nXS2)'/`r(totXS2)'") 	("`r(nS2)'/`r(totS2)'") 	("`pv2'") 	("`power2'")	("")
+
+		* convert the stage 1 p-value stopping rule scale to difference in proportions (approximate)
+		prtesti 58 0.30 29 0.2375
+
+		// design 2 (2 stage; 90% power; 2:1:1 randomisation; q_range=="[0.00,0.50]")
+		* in the first interim anaysis, a new treatment is dropped if the absolute reduction is <=6.28% (~6%): prtesti 52 0.30 26 0.2372
+		nstagebin, nstage(2) accrate(8 8) alpha(0.28 0.015) ///
+					 power(0.95 0.93) arms(3 3) theta0(0) ///
+					 theta1(-0.20) ctrlp(0.3) fu(0.92) ltfu(0) tunit(4) ///
+					 aratio(0.5) probs ess extrat(0) seed(25)
+		 
+		forvalues i=1(1)2{ 
+			local power`i'	: 	di %3.1f (`r(WS`i')')*100
+			local pv`i'	: 	di %4.3f (`r(AS`i')')
+		}
+		local fwer		: 	di %5.4f (`r(fwer)')
+		local sefwer		: 	di %5.4f r(se_fwer)
+
+		di _skip(20)
+		post `myout' ("90%; 2:1:1; q_range[0.51,0.70]") ("") ("") ("") ("") ("") ("") ("") 
+		post `myout' ("stage 1")  ("`r(nCS1)'/`r(totCS1)'") 		("`r(nXS1)'/`r(totXS1)'") 	("`r(nXS1)'/`r(totXS1)'") 	("`r(nS1)'/`r(totS1)'") 	("`pv1'") 	("`power1'") 	("`fwer' (`sefwer')")
+		post `myout' ("stage 2")  ("`r(nCS2)'/`r(totCS2)'")  		("`r(nXS2)'/`r(totXS2)'") 	("`r(nXS2)'/`r(totXS2)'") 	("`r(nS2)'/`r(totS2)'") 	("`pv2'") 	("`power2'")	("")
+
+	qui postclose `myout'
+
+	qui use `mamsdesign', clear
+	qui save "$S_path\3-arm 2-stage (mams) design", replace
+	l
+
+	********************************************************************************
+	* for the selected design = q_range [0.51,0.70]) only
+	* an example exploring the impact of recruitment rate on the study length
+	* all the other operating characteristics of the design remain the same)
+	********************************************************************************
+	qui tempname myout 
+	qui tempfile mamsaccrual
+
+	qui postfile `myout' str20 (col1 col2 col3 col4) using `mamsaccrual', replace
+		post `myout' ("q_range [0.51,0.70]") ("Accrual rate") ("Study duration") ("")
+		post `myout' ("") (" (per month)") ("Stage1 (months)") ("Stage 2 (months)")
+	forvalues r = 5(1)8 {
+		nstagebin, nstage(2) accrate(`r' `r') alpha(0.27 0.014) 				///
+				 power(0.96 0.92) arms(3 3) theta0(0) 					///
+				 theta1(-0.20) ctrlp(0.3) fu(0.92) ltfu(0) tunit(4) 			///
+				 aratio(0.5) probs ess extrat(0) seed(25)
+
+		 local t1 : di %3.1f `r(tS1)'
+		 local t2 : di %3.1f `r(tS2)'
+		 
+		post `myout' ("") ("`r'") ("`t1'") ("`t2'")
+	}
+	qui postclose `myout'
+
+	qui use `mamsaccrual', clear
+	qui save "$S_path\3-arm 2-stage (mams) design - study duration", replace
+
+	********************************************************************************
+	* an exaample to explore the impact of misspecification of the control event rate
+	* the required sample sizes in order to maintain the same statistical properties
+	********************************************************************************
+	qui tempname myout 
+	qui tempfile mamscont 
+	qui postfile `myout' str20 (col1 col2 col3 col4 col5 col6 col7 col8 col9) using `mamscont', replace
+		post `myout' ("Design") ("") ("n0") ("n1") ("n2") ("N") ("sig. level") ("power") ("familywise err (se)") 
+
+		post `myout' ("q_range[0.51,0.70]") ("") ("") ("") ("") ("") ("") ("") ("") 
+	forvalues p = 0.25(0.05)0.40 {
+		nstagebin, nstage(2) accrate(8 8) alpha(0.27 0.014) 					///
+				 power(0.96 0.92) arms(3 3) theta0(0) 					///
+				 theta1(-0.20) ctrlp(`p') fu(0.92) ltfu(0) tunit(4) 			///
+				 aratio(0.5) probs ess extrat(0) seed(25)
+
+		forvalues i = 1(1)2 { 
+			local power`i'	: 	di %3.1f (`r(WS`i')')*100
+			local pv`i'	: 	di %4.3f (`r(AS`i')')
+		}
+		
+		local fwer		: 	di %5.4f (`r(fwer)')
+		local sefwer		: 	di %5.4f `r(se_fwer)'
+
+		di _skip(20)
+		post `myout' ("") ("`p'") ("") ("") ("") ("") ("") ("") ("") 
+		post `myout' ("") ("stage 1")  ("`r(nCS1)'/`r(totCS1)'") 		("`r(nXS1)'/`r(totXS1)'") 	("`r(nXS1)'/`r(totXS1)'") 	("`r(nS1)'/`r(totS1)'") 	("`pv1'") 	("`power1'") 	("`fwer' (`sefwer')")
+		post `myout' ("") ("stage 2")  ("`r(nCS2)'/`r(totCS2)'")  		("`r(nXS2)'/`r(totXS2)'") 	("`r(nXS2)'/`r(totXS2)'") 	("`r(nS2)'/`r(totS2)'") 	("`pv2'") 	("`power2'")	("")
+	}
+
+	qui postclose `myout'
+
+	qui use `mamscont', clear
+	qui save "$S_path\3-arm 2-stage (mams) design - control uncertainty", replace
+	l
+
+end 
+stopohss
+ex	
