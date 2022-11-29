@@ -1,15 +1,15 @@
 # [PANDA](https://panda.shef.ac.uk/) repository
 
-This repository contains R and Stata code used for educational purposes as part of the [PANDA platform](https://panda.shef.ac.uk/). It gives opportunities for PANDA platform users to translate theory on adaptive designs into practice. The code in this repository is linked to content in [PANDA platform](https://panda.shef.ac.uk/).
+This repository contains **Stata**, **SAS**, and **R** code and related material used for educational purposes as part of the [PANDA platform](https://panda.shef.ac.uk/). It gives opportunities for PANDA platform users to translate theory on adaptive designs into practice. Content of this repository is linked to [PANDA platform](https://panda.shef.ac.uk/) material.
 
 ## Illustration of the design of a multi-arm multi-stage (MAMS) ([STOP OHSS](https://panda.shef.ac.uk/techniques/multi-arm-multi-stage-mams/categories/30#search_subheading_reference_42)) trial
 
-**Stata** code (_stopohss_mams_code.do_) was used for the design of [STOP OHSS trial](https://panda.shef.ac.uk/techniques/multi-arm-multi-stage-mams/categories/30#search_subheading_reference_42)to illustrate:
+**Stata** code (_stopohss_mams_code.do_) was used for the design of [STOP OHSS](https://panda.shef.ac.uk/techniques/multi-arm-multi-stage-mams/categories/30#search_subheading_reference_42) trial to illustrate:
 
 - design specification,
 - sample size calculation and operating characteristics.
 
-## Illustration of the analysis of the [STOP OHSS trial](https://panda.shef.ac.uk/techniques/multi-arm-multi-stage-mams/categories/30#search_subheading_reference_42) MAMS trial with a binary primary outcome
+## Illustration of the analysis of the MAMS [STOP OHSS](https://panda.shef.ac.uk/techniques/multi-arm-multi-stage-mams/categories/30#search_subheading_reference_42) trial with a binary outcome
 
 Simulation based approach using **SAS** code to explore the:
 
