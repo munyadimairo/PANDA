@@ -1,10 +1,10 @@
 ********************************************************************************
-* Authour 		  :		Munya Dimairo (mdimairo@gmail.com/m.dimairo@sheffield.ac.uk)
-* Date				  :		19032020 
-* Project		 	  :		PANDA 
-* Project email	: 	panda-group@sheffield.ac.uk
-* Task	 			  :		Example to illustrate the application of inverse normal combination test after sample size re-estimation
-* Software      :   Run code in Stata
+* Author 		:		Munya Dimairo (mdimairo@gmail.com/m.dimairo@sheffield.ac.uk)
+* Date			:		19032020 
+* Project		:		PANDA 
+* Project email		: 		panda-group@sheffield.ac.uk
+* Task	 		:		Example to illustrate the application of inverse normal combination test after sample size re-estimation
+* Software      	:   Run code in Stata
 **********************************************************************************
 cap prog drop ssrtest
 cap prog define ssrtest, rclass
