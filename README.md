@@ -16,4 +16,4 @@ Simulation based approach using [**SAS** code](https://github.com/munyadimairo/P
 - operating characteristics of the design (similar to above),
 - properties of naive and bias-adjusted estimators (bias and confidence interval coverage).
 
-A detailed simulation summary report is provided. We are extremely grateful to **John Whitehead** for his generous contribution to the SAS code and related report. 
+A detailed [simulation summary report](https://github.com/munyadimairo/PANDA/tree/master/SAS_MAMS/Report) is provided. We are extremely grateful to **John Whitehead** for his generous contribution to the SAS code and related report. 
